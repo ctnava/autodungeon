@@ -23,14 +23,22 @@ function prune(entities) {
   return survivors;
 }
 
-function onePer(roomCount, entities, placeAll) {
+function placement(roomCount, entities, perRoomLimit) {
   let locations = [];
   let labels = [];
   entities.forEach((toPlace) => {
     let deployed = false;
     while (!deployed) {
       let num = dice.roll(roomCount);
-      if (!locations.includes(num)) {
+
+      const eligible = {
+        limit1: perRoomLimit === 1 && !locations.includes(num),
+        multi:
+          perRoomLimit !== 1 &&
+          locations.filter((n) => n === num).length < perRoomLimit,
+      };
+
+      if (eligible.limit1 || eligible.multi) {
         locations.push(num);
         labels.push(toPlace);
         deployed = true;
@@ -41,45 +49,27 @@ function onePer(roomCount, entities, placeAll) {
   return { locations, labels };
 }
 
-function randomize(roomCount, entities, perRoomLimit, placeAll) {
-  let pruned = placeAll ? entities : prune(entities);
-  if (perRoomLimit === 1) output = onePer(roomCount, pruned, placeAll);
-
-  return output;
-}
-
 function dispenseEntities(roomCount, type, locations, labels) {
   let rooms = [];
 
-  for (let i = 1; i <= roomCount; i++) {
+  for (let location = 1; location <= roomCount; location++) {
     let room = {};
     room[type] = [];
 
-    if (locations.includes(i)) {
-      room[type].push(labels[locations.indexOf(i)]);
-    }
+    labels.forEach((label, idx) => {
+      if (location === locations[idx]) room[type].push(label);
+    });
 
     rooms.push(room);
   }
-
   return rooms;
 }
 
-function distribute(
-  roomCount,
-  type,
-  entities,
-  perRoomLimit = 1,
-  placeAll = true
-) {
-  let { locations, labels } = randomize(
-    roomCount,
-    entities,
-    perRoomLimit,
-    placeAll
-  );
-
-  return dispenseEntities(roomCount, type, locations, labels);
+function distribute(roomCount, type, entities, perRoomLimit, placeAll) {
+  const pruned = placeAll ? entities : prune(entities);
+  const { locations, labels } = placement(roomCount, pruned, perRoomLimit);
+  const hallways = dispenseEntities(roomCount, type, locations, labels);
+  return hallways;
 }
 
-module.exports = { distribute, prune };
+module.exports = { distribute };

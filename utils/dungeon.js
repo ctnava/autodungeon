@@ -1,8 +1,8 @@
-const { distribute, prune } = require('./distribution.js');
+const { distribute } = require('./distribution.js');
 
 function generate(
-  mobLimit = 1,
-  trapLimit = 1,
+  mobLimit = 3,
+  trapLimit = 3,
   deployAllMobs = true,
   deployAllTraps = true,
   mobs = ['zombie', 'goblin', 'golem'],
@@ -50,21 +50,7 @@ function generate(
   });
 
   // dungeon generated
-  console.log(rooms);
   return rooms;
 }
 
-function test(
-  mobLimit = 1,
-  trapLimit = 1,
-  deployAllMobs = true,
-  deployAllTraps = true,
-  mobs = ['zombie', 'goblin', 'golem'],
-  traps = ['boulder', 'acidPit', 'lTurret'],
-  bosses = ['ghostSharks', 'mummyWizard', 'tRex'],
-  roomCount = 6
-) {
-  prune(mobs);
-}
-
-module.exports = { generate, test };
+module.exports = { generate };
