@@ -57,6 +57,8 @@ function generate(
 function test(
   mobLimit = 1,
   trapLimit = 1,
+  deployAllMobs = true,
+  deployAllTraps = true,
   mobs = ['zombie', 'goblin', 'golem'],
   traps = ['boulder', 'acidPit', 'lTurret'],
   bosses = ['ghostSharks', 'mummyWizard', 'tRex'],
