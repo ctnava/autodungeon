@@ -1,11 +1,11 @@
 {
-  "name": "autodungeon",
+  "name": "foxy-autodungeon",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "I made a dungeon generator for DJFoxy's new game!",
   "scripts": {
+    "generate": "node ./index.js",
     "test": "node ./test.js"
   },
   "author": "github/ctnava",
-  "license": "MIT"
+  "license": "GPL"
 }
