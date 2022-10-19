@@ -1,69 +1,68 @@
-const dice = require('./dice.js');
-
-function trapPlacement(
-  roomCount = 6,
-  traps = ['boulder', 'acidPit', 'lTurret']
-) {
-  if (roomCount < 1 || traps.length < 1)
-    throw new error('trapPlacement: invalid parameters');
-
-  let locations = [];
-  let types = [];
-  traps.forEach((toPlace) => {
-    let deployed = false;
-    while (!deployed) {
-      let num = dice.roll(roomCount);
-      if (!locations.includes(num)) {
-        locations.push(num);
-        types.push(toPlace);
-        deployed = true;
-      }
-    }
-  });
-
-  return { locations, types };
-}
-
-function mobPlacement(roomCount = 6, mobs = ['zombie', 'goblin', 'golem']) {
-  if (roomCount < 1 || mobs.length < 1)
-    throw new error('trapPlacement: invalid parameters');
-}
+const { distribute, prune } = require('./distribution.js');
 
 function generate(
-  roomCount = 6,
+  mobLimit = 1,
+  trapLimit = 1,
+  deployAllMobs = true,
+  deployAllTraps = true,
   mobs = ['zombie', 'goblin', 'golem'],
   traps = ['boulder', 'acidPit', 'lTurret'],
-  bosses = ['ghostSharks', 'mummyWizard', 'tRex']
+  bosses = ['ghostSharks', 'mummyWizard', 'tRex'],
+  roomCount = 6
 ) {
-  if (roomCount < 1 || mobs.length < 1 || traps.length < 1)
-    throw new error('createRooms: invalid parameters');
+  if (roomCount < 3) throw new error('generate: invalid roomCount');
+  if (traps.length < 3) throw new error('generate: invalid trap array');
+  if (mobs.length < 3) throw new error('generate: invalid mob array');
 
-  const trap = trapPlacement(roomCount, traps);
-  const mob = mobPlacement(roomCount, mobs);
+  // generating individual placements by entity types
+  const trapPlacement = distribute(
+    roomCount,
+    'traps',
+    traps,
+    trapLimit,
+    deployAllTraps
+  );
+  const mobPlacement = distribute(
+    roomCount,
+    'mobs',
+    mobs,
+    mobLimit,
+    deployAllMobs
+  );
 
-  let rooms = [];
-  rooms.push({ description: 'Entry', trap: undefined, mobs: ['players'] });
-
-  for (let i = 1; i <= roomCount; i++) {
-    let room = { description: 'dungeon', trap: undefined, mobs: [] };
-
-    if (trap.locations.includes(i)) {
-      const idx = trap.locations.indexOf(i);
-      room.trap = trap.types[idx];
-    }
-
-    rooms.push(room);
-  }
-
-  const bossIdx = Math.floor(Math.random() * bosses.length);
-
-  rooms.push({
-    description: 'endgame',
-    trap: undefined,
-    mobs: [bosses[bossIdx]],
+  // aggregating placement data
+  let entityPlacement = [];
+  mobPlacement.forEach((mob, idx) => {
+    entityPlacement.push({ ...mob, ...trapPlacement[idx] });
   });
 
+  // applying aggregate data
+  let rooms = [];
+  rooms.push({ description: 'entrance', mobs: ['players'], traps: [] });
+  for (let i = 1; i <= roomCount; i++) {
+    rooms.push({ description: 'hallways', ...entityPlacement[i - 1] });
+  }
+  const bossIdx = Math.floor(Math.random() * bosses.length);
+  rooms.push({
+    description: 'bossRoom',
+    mobs: [bosses[bossIdx]],
+    traps: [],
+  });
+
+  // dungeon generated
+  console.log(rooms);
   return rooms;
 }
 
-module.exports = { generate };
+function test(
+  mobLimit = 1,
+  trapLimit = 1,
+  mobs = ['zombie', 'goblin', 'golem'],
+  traps = ['boulder', 'acidPit', 'lTurret'],
+  bosses = ['ghostSharks', 'mummyWizard', 'tRex'],
+  roomCount = 6
+) {
+  prune(mobs);
+}
+
+module.exports = { generate, test };
