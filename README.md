@@ -13,7 +13,7 @@ Dungeon Generator for DJFoxy's New Game
 
 ## Sample Output
 
-![Watch it in action!](https://youtu.be/fhpD9ZEAhnk)
+[![Watch it in action!](https://cdn.mos.cms.futurecdn.net/8gzcr6RpGStvZFA2qRt4v6-970-80.jpg.webp)](https://www.youtube.com/watch?v=fhpD9ZEAhnk)
 
 ### Resulting Map Image
 
