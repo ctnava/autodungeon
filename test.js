@@ -122,5 +122,5 @@ function main() {
 const { generate } = require('./dungeon/utils/image.js');
 (async () => {
   const data = main();
-  generate(data);
+  await generate(data);
 })();

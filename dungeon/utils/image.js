@@ -5,23 +5,23 @@ const dice = require('./dice.js');
 const dirs = require('../../utils/dirs.js');
 
 const finalPath = () =>
-  `${dirs.pathTo('outputs', 'images')}/${
-    fs.readdirSync(dirs.pathTo('outputs', 'data')).length
+  `./output/images/${
+    fs.readdirSync(dirs.pathTo('output', 'data')).length - 1
   }.png`;
 
-async function drawLayer(base, type, entity, x = 0, y = 0) {
+async function drawLayer(base, type, entity, coordinates) {
   const { canvas, context } = base;
   const image = await loadImage(dirs.pathTo(type, entity));
-  await context.drawImage(image, x, y, dimensions.width, dimensions.height);
+  await context.drawImage(image, coordinates.x, coordinates.y);
   await fs.writeFileSync(finalPath(), canvas.toBuffer('image/png'));
 }
 
 function selectMap() {
   const selection = dice.roll(fs.readdirSync('./assets/maps').length, 1);
-  const mapPath = dirs.pathTo('maps', `${selection}`);
+  const mapPath = `./assets/maps/${selection}.png`;
   const coordinates = allCoordinates[selection];
   const dimensions = allDimensions[selection];
-  return { mapPath, coordinates, dimensions };
+  return { selection, mapPath, coordinates, dimensions };
 }
 
 // center of the room
@@ -59,22 +59,85 @@ const allCoordinates = {
 };
 
 const allDimensions = {
-  1: { height: 8400, width: 6160 },
-  2: { height: 7832, width: 6720 },
-  3: { height: 8400, width: 6720 },
+  1: { width: 8400, height: 6160 },
+  2: { width: 7832, height: 6720 },
+  3: { width: 8400, height: 6720 },
+};
+
+const offset = (num) => {
+  let x, y;
+  const defSet = 128;
+
+  const rows = [
+    [1, 2, 3, 4],
+    [5, 6, 7, 8],
+    [9, 10, 11, 12],
+    [13, 14, 15, 16],
+  ];
+
+  let rIdx, cIdx;
+  rows.forEach((row, idx) => {
+    if (row.includes(num)) {
+      rIdx = idx;
+      cIdx = row.indexOf(num);
+    }
+  });
+
+  if (cIdx === 0) x = defSet * 2;
+  else if (cIdx === 1) x = defSet;
+  else if (cIdx === 2) x = 0;
+  else if (cIdx === 3) x = 0 - defSet;
+
+  if (rIdx === 0) y = defSet * 2;
+  else if (rIdx === 1) y = defSet;
+  else if (rIdx === 2) y = 0;
+  else if (rIdx === 3) y = 0 - defSet;
+
+  return { x, y };
 };
 
 async function generate(game) {
-  const { mapPath, coordinates, dimensions } = selectMap();
-  let canvas = createCanvas(dimensions.width, dimensions.height);
-  let context = canvas.getContext('2d');
-  let base = { canvas, context };
+  const { selection, mapPath, coordinates, dimensions } = selectMap();
+  console.log(selection, mapPath, coordinates, dimensions);
+  if (selection === 1) {
+    let canvas = createCanvas(dimensions.width, dimensions.height);
+    let context = canvas.getContext('2d');
+    let base = { canvas, context, dimensions };
+    console.log(mapPath, finalPath());
+    await context.drawImage(
+      await loadImage(mapPath),
+      0,
+      0,
+      dimensions.width,
+      dimensions.height
+    );
+    await fs.writeFileSync(finalPath(), canvas.toBuffer('image/png'));
 
-  for await (const room of game) {
-    const types = Object.keys(room).filter((key) => key !== 'description');
-    for await (const type of types) {
-      for await (const entity of room[type]) {
-        console.log(entity);
+    for await (const room of game) {
+      const types = Object.keys(room).filter((key) => key !== 'description');
+      let count = 1;
+      for await (const type of types) {
+        for await (const entity of room[type]) {
+          const bossList = fs
+            .readdirSync('./assets/bosses')
+            .map((name) => name.split('.')[0]);
+          const exempt = ['players', ...bossList];
+
+          const set = exempt.includes(entity) ? { x: 0, y: 0 } : offset(count);
+          const assetType =
+            type === 'traps'
+              ? type
+              : bossList.includes(entity)
+              ? 'bosses'
+              : 'mobs';
+          console.log(assetType, entity);
+
+          await drawLayer(base, assetType, entity, {
+            x: coordinates[game.indexOf(room) + 1].x + set.x,
+            y: coordinates[game.indexOf(room) + 1].y + set.y,
+          });
+          count++;
+        }
       }
     }
   }
