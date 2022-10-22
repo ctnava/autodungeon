@@ -13,6 +13,8 @@ Dungeon Generator for DJFoxy's New Game
 
 ## Sample Output
 
+![Watch it in action!](https://youtu.be/fhpD9ZEAhnk)
+
 ### Resulting Map Image
 
 !["Sample Map Output"](https://github.com/ctnava/autodungeon/blob/main/blob/map.png)
