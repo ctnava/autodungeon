@@ -64,46 +64,49 @@ const allDimensions = {
   3: { width: 8400, height: 6720 },
 };
 
-const offset = (num) => {
+const offset = (occupied) => {
+  let position;
+  while (!position) {
+    const result = dice.roll(16, 1);
+    if (!occupied.includes(result)) position = result;
+  }
   let x, y;
-  const defSet = 128;
+  const defSet = 256;
 
   const rows = [
-    [1, 2, 3, 4],
-    [5, 6, 7, 8],
-    [9, 10, 11, 12],
-    [13, 14, 15, 16],
+    [8, 13, 9, 5],
+    [12, 1, 4, 14],
+    [16, 3, 2, 10],
+    [7, 11, 15, 6],
   ];
 
   let rIdx, cIdx;
   rows.forEach((row, idx) => {
-    if (row.includes(num)) {
+    if (row.includes(position)) {
       rIdx = idx;
-      cIdx = row.indexOf(num);
+      cIdx = row.indexOf(position);
     }
   });
 
-  if (cIdx === 0) x = defSet * 2;
-  else if (cIdx === 1) x = defSet;
-  else if (cIdx === 2) x = 0;
-  else if (cIdx === 3) x = 0 - defSet;
+  if (cIdx === 0) x = 0 - defSet * 2; // left
+  else if (cIdx === 1) x = 0 - defSet; // middle left
+  else if (cIdx === 2) x = 0; // middle right
+  else if (cIdx === 3) x = defSet; // right
 
-  if (rIdx === 0) y = defSet * 2;
-  else if (rIdx === 1) y = defSet;
-  else if (rIdx === 2) y = 0;
-  else if (rIdx === 3) y = 0 - defSet;
+  if (rIdx === 0) y = 0 - defSet * 2; // top
+  else if (rIdx === 1) y = 0 - defSet; // middle top
+  else if (rIdx === 2) y = 0; // middle bottom
+  else if (rIdx === 3) y = defSet; // bottom
 
-  return { x, y };
+  return { x, y, position };
 };
 
 async function generate(game) {
   const { selection, mapPath, coordinates, dimensions } = selectMap();
-  console.log(selection, mapPath, coordinates, dimensions);
   if (selection === 1) {
     let canvas = createCanvas(dimensions.width, dimensions.height);
     let context = canvas.getContext('2d');
     let base = { canvas, context, dimensions };
-    console.log(mapPath, finalPath());
     await context.drawImage(
       await loadImage(mapPath),
       0,
@@ -115,7 +118,7 @@ async function generate(game) {
 
     for await (const room of game) {
       const types = Object.keys(room).filter((key) => key !== 'description');
-      let count = 1;
+      let occupied = [];
       for await (const type of types) {
         for await (const entity of room[type]) {
           const bossList = fs
@@ -123,20 +126,23 @@ async function generate(game) {
             .map((name) => name.split('.')[0]);
           const exempt = ['players', ...bossList];
 
-          const set = exempt.includes(entity) ? { x: 0, y: 0 } : offset(count);
+          const set = exempt.includes(entity)
+            ? { x: -256, y: -256, position: 0 }
+            : offset(occupied);
+
           const assetType =
             type === 'traps'
               ? type
               : bossList.includes(entity)
               ? 'bosses'
               : 'mobs';
-          console.log(assetType, entity);
+
+          occupied.push(set.postion);
 
           await drawLayer(base, assetType, entity, {
             x: coordinates[game.indexOf(room) + 1].x + set.x,
             y: coordinates[game.indexOf(room) + 1].y + set.y,
           });
-          count++;
         }
       }
     }
