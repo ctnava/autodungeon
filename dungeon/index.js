@@ -1,7 +1,7 @@
 const dungeon = require('./utils/dungeon.js');
 const dice = require('./utils/dice.js');
 
-const { save } = require('../utils/output.js');
+const { save, get } = require('../utils/output.js');
 
 function create(inputs, store = true) {
   const game = dungeon.generate(
@@ -18,4 +18,4 @@ function create(inputs, store = true) {
   return { data: game };
 }
 
-module.exports = { create, dice };
+module.exports = { create, dice, get };

@@ -1,7 +1,6 @@
 const fs = require('fs');
 const dungeon = require('./dungeon/index.js');
 const { pathTo } = require('./utils/dirs.js');
-const { get } = require('./utils/output.js');
 
 const test = (name, callback) => {
   let out;
@@ -76,7 +75,7 @@ function testDungeon() {
 
 function testCache(against) {
   test('Cache', () => {
-    const { data } = get(0);
+    const { data } = dungeon.get(0);
     let idx = 0;
     data.forEach((obj) => {
       const cached = against[idx];
