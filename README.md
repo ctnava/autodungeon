@@ -4,10 +4,11 @@ Dungeon Generator for DJFoxy's New Game
 
 ## Functionality
 
-- randomizes the room location of mobs & traps (entities)
+- randomizes the room id of mobs & traps (entities)
 - randomizes the location of these entities WITHIN the rooms
-- randomizes the final boss
+- picks a random final boss
 - generates game metadata in json format
+- picks a random map layout
 - takes this data to create a map image
 
 ## Sample Output
