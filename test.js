@@ -116,6 +116,11 @@ function main() {
   const { data } = testDungeon();
   testCache(data);
   console.log();
+  return data;
 }
 
-main();
+const { generate } = require('./dungeon/utils/image.js');
+(async () => {
+  const data = main();
+  generate(data);
+})();
