@@ -10,8 +10,8 @@ function save(data) {
 }
 
 function get(id) {
-  let outPath = pathTo('output');
-  let data = JSON.parse(fs.readFileSync(`${outPath}/data/${id}.json`));
+  let outPath = pathTo('output', 'data');
+  let data = JSON.parse(fs.readFileSync(`${outPath}/${id}.json`)).data;
   let image;
   return { data, image };
 }

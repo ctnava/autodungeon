@@ -76,12 +76,42 @@ function testDungeon() {
 
 function testCache(against) {
   test('Cache', () => {
-    const cache = get(0);
+    const { data } = get(0);
+    let idx = 0;
+    data.forEach((obj) => {
+      const cached = against[idx];
+
+      if (obj.description !== cached.description)
+        throw new Error(
+          `Cache Test: description error\nexpected:${obj} actual:${cached}`
+        );
+
+      obj.mobs.forEach((mob) => {
+        const cMob = cached.mobs[obj.mobs.indexOf(mob)];
+        if (cMob !== mob)
+          throw new Error(
+            `Cache Test: mob error\nexpected:${mob} actual:${cMob}`
+          );
+      });
+
+      obj.traps.forEach((trap) => {
+        const cTrap = cached.traps[obj.traps.indexOf(trap)];
+        if (cTrap !== trap)
+          throw new Error(
+            `Cache Test: mob error\nexpected:${trap} actual:${cTrap}`
+          );
+      });
+
+      idx++;
+    });
   });
-  fs.rmdirSync(`./output`, { recursive: true });
 }
 
 function main() {
+  if (fs.existsSync('./output')) {
+    console.log('\nClearing Cache...');
+    fs.rmSync(`./output`, { recursive: true });
+  }
   diceTest();
   testDirs();
   const { data } = testDungeon();
