@@ -1,5 +1,7 @@
+const fs = require('fs');
 const dungeon = require('./dungeon/index.js');
 const { pathTo } = require('./utils/dirs.js');
+const { get } = require('./utils/output.js');
 
 const test = (name, callback) => {
   let out;
@@ -72,11 +74,18 @@ function testDungeon() {
   return out;
 }
 
+function testCache(against) {
+  test('Cache', () => {
+    const cache = get(0);
+  });
+  fs.rmdirSync(`./output`, { recursive: true });
+}
+
 function main() {
   diceTest();
   testDirs();
   const { data } = testDungeon();
-  console.log(data);
+  testCache(data);
   console.log();
 }
 
