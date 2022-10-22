@@ -37,24 +37,24 @@ const allCoordinates = {
     8: { x: 6440, y: 4900 },
   },
   2: {
-    1: { x: 0, y: 0 },
-    2: { x: 0, y: 0 },
-    3: { x: 0, y: 0 },
-    4: { x: 0, y: 0 },
-    5: { x: 0, y: 0 },
-    6: { x: 0, y: 0 },
-    7: { x: 0, y: 0 },
-    8: { x: 0, y: 0 },
+    1: { x: 1400, y: 5330 },
+    2: { x: 3100, y: 5330 },
+    3: { x: 4750, y: 5330 },
+    4: { x: 6400, y: 5330 },
+    5: { x: 4750, y: 3650 },
+    6: { x: 4750, y: 1960 },
+    7: { x: 6400, y: 1960 },
+    8: { x: 2800, y: 1960 },
   },
   3: {
-    1: { x: 0, y: 0 },
-    2: { x: 0, y: 0 },
-    3: { x: 0, y: 0 },
-    4: { x: 0, y: 0 },
-    5: { x: 0, y: 0 },
-    6: { x: 0, y: 0 },
-    7: { x: 0, y: 0 },
-    8: { x: 0, y: 0 },
+    1: { x: 1380, y: 1950 },
+    2: { x: 1380, y: 3660 },
+    3: { x: 1380, y: 5330 },
+    4: { x: 3100, y: 3660 },
+    5: { x: 3100, y: 5330 },
+    6: { x: 4770, y: 3660 },
+    7: { x: 4770, y: 1950 },
+    8: { x: 6700, y: 1950 },
   },
 };
 
@@ -103,47 +103,46 @@ const offset = (occupied) => {
 
 async function generate(game) {
   const { selection, mapPath, coordinates, dimensions } = selectMap();
-  if (selection === 1) {
-    let canvas = createCanvas(dimensions.width, dimensions.height);
-    let context = canvas.getContext('2d');
-    let base = { canvas, context, dimensions };
-    await context.drawImage(
-      await loadImage(mapPath),
-      0,
-      0,
-      dimensions.width,
-      dimensions.height
-    );
-    await fs.writeFileSync(finalPath(), canvas.toBuffer('image/png'));
 
-    for await (const room of game) {
-      const types = Object.keys(room).filter((key) => key !== 'description');
-      let occupied = [];
-      for await (const type of types) {
-        for await (const entity of room[type]) {
-          const bossList = fs
-            .readdirSync('./assets/bosses')
-            .map((name) => name.split('.')[0]);
-          const exempt = ['players', ...bossList];
+  let canvas = createCanvas(dimensions.width, dimensions.height);
+  let context = canvas.getContext('2d');
+  let base = { canvas, context, dimensions };
+  await context.drawImage(
+    await loadImage(mapPath),
+    0,
+    0,
+    dimensions.width,
+    dimensions.height
+  );
+  await fs.writeFileSync(finalPath(), canvas.toBuffer('image/png'));
 
-          const set = exempt.includes(entity)
-            ? { x: -256, y: -256, position: 0 }
-            : offset(occupied);
+  for await (const room of game) {
+    const types = Object.keys(room).filter((key) => key !== 'description');
+    let occupied = [];
+    for await (const type of types) {
+      for await (const entity of room[type]) {
+        const bossList = fs
+          .readdirSync('./assets/bosses')
+          .map((name) => name.split('.')[0]);
+        const exempt = ['players', ...bossList];
 
-          const assetType =
-            type === 'traps'
-              ? type
-              : bossList.includes(entity)
-              ? 'bosses'
-              : 'mobs';
+        const set = exempt.includes(entity)
+          ? { x: -256, y: -256, position: 0 }
+          : offset(occupied);
 
-          occupied.push(set.postion);
+        const assetType =
+          type === 'traps'
+            ? type
+            : bossList.includes(entity)
+            ? 'bosses'
+            : 'mobs';
 
-          await drawLayer(base, assetType, entity, {
-            x: coordinates[game.indexOf(room) + 1].x + set.x,
-            y: coordinates[game.indexOf(room) + 1].y + set.y,
-          });
-        }
+        occupied.push(set.postion);
+
+        await drawLayer(base, assetType, entity, {
+          x: coordinates[game.indexOf(room) + 1].x + set.x,
+          y: coordinates[game.indexOf(room) + 1].y + set.y,
+        });
       }
     }
   }
